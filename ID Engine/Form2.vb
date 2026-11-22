@@ -1,22 +1,13 @@
 ﻿Public Class frmhlp
     Private Sub frmhlp_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Me.Icon = My.Resources.help
+        Me.Icon = My.Resources.asd
         Me.ShowInTaskbar = False
         Me.BackgroundImage = My.Resources.back___Copy
         Me.Button1.Focus()
-        On Error Resume Next
-        Const file As String = "help.std"
-        Dim tmp As String
-        tmp = ""
-        FileSystem.FileOpen(1, file, OpenMode.Input)
-        Do While Not FileSystem.EOF(1)
-            tmp = tmp & FileSystem.LineInput(1)
-            If Not FileSystem.EOF(1) Then
-                tmp = tmp & Chr(13) & Chr(10)
-            End If
-        Loop
-        FileSystem.FileClose(1)
-        Label1.Text = tmp
+        Dim file As String = IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "help.std")
+        If IO.File.Exists(file) Then
+            Label1.Text = IO.File.ReadAllText(file, System.Text.Encoding.Default)
+        End If
     End Sub
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         Me.Close()

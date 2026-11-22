@@ -74,7 +74,6 @@
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -170,34 +169,8 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-    <None Include="Resources\AGTWS___.TTF" />
-    <None Include="Resources\ALOS____.TTF" />
-    <None Include="Resources\ALSC____.TTF" />
-    <None Include="Resources\ANANH___.TTF" />
-    <None Include="Resources\ANFWS___.TTF" />
-    <None Include="Resources\ANLFE___.TTF" />
-    <None Include="Resources\ANMSC___.TTF" />
-    <None Include="Resources\ANSTS___.TTF" />
-    <None Include="Resources\ANTQUABI.TTF" />
-    <None Include="Resources\diploma.ttf" />
-    <None Include="Resources\DL-Anupama.TTF" />
-    <None Include="Resources\DL_ANUPAMA2.TTF" />
-    <None Include="Resources\sysinfo.nfo" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\complete.wav" />
-    <None Include="Resources\halo4_windows_trash_03.wav" />
-    <None Include="Resources\halo4_windows_ringtone_oneoff_01.wav" />
-    <None Include="Resources\halo4_windows_logon_06.wav" />
-    <None Include="Resources\halo4_windows_logoff_01.wav" />
-    <None Include="Resources\halo4_email_notification_01.wav" />
-    <None Include="Resources\halo4_alert_04.wav" />
-    <None Include="Resources\Web a.ico" />
-    <None Include="Resources\link.ico" />
-    <None Include="Resources\information.ico" />
-    <None Include="Resources\help-2.ico" />
-    <None Include="Resources\GNU.txt" />
-    <None Include="Resources\background_900x500.png" />
     <None Include="Resources\back - Copy.png" />
     <None Include="Resources\150 x 150_logo_transparent.png" />
     <None Include="Resources\Entypo_2b07%283%29.ico" />
@@ -280,6 +253,11 @@
       </TargetPath>
       <FileType>File</FileType>
     </PublishFile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="help.std">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

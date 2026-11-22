@@ -43,10 +43,9 @@ Partial Class mainForm
         Me.Button1 = New System.Windows.Forms.Button()
         Me.Button2 = New System.Windows.Forms.Button()
         Me.Label9 = New System.Windows.Forms.Label()
-        Me.ShapeContainer1 = New Microsoft.VisualBasic.PowerPacks.ShapeContainer()
-        Me.LineShape3 = New Microsoft.VisualBasic.PowerPacks.LineShape()
-        Me.LineShape2 = New Microsoft.VisualBasic.PowerPacks.LineShape()
-        Me.LineShape1 = New Microsoft.VisualBasic.PowerPacks.LineShape()
+        Me.LineShape3 = New System.Windows.Forms.Panel()
+        Me.LineShape2 = New System.Windows.Forms.Panel()
+        Me.LineShape1 = New System.Windows.Forms.Panel()
         Me.Button3 = New System.Windows.Forms.Button()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
@@ -209,39 +208,28 @@ Partial Class mainForm
         Me.Label9.TabIndex = 16
         Me.Label9.Text = "Ex :- http://<domain name>/<path to resource>/<resource>"
         '
-        'ShapeContainer1
         '
-        Me.ShapeContainer1.Location = New System.Drawing.Point(0, 0)
-        Me.ShapeContainer1.Margin = New System.Windows.Forms.Padding(0)
-        Me.ShapeContainer1.Name = "ShapeContainer1"
-        Me.ShapeContainer1.Shapes.AddRange(New Microsoft.VisualBasic.PowerPacks.Shape() {Me.LineShape3, Me.LineShape2, Me.LineShape1})
-        Me.ShapeContainer1.Size = New System.Drawing.Size(884, 461)
-        Me.ShapeContainer1.TabIndex = 17
-        Me.ShapeContainer1.TabStop = False
         '
         'LineShape3
         '
+        Me.LineShape3.BackColor = System.Drawing.Color.Black
+        Me.LineShape3.Location = New System.Drawing.Point(0, 406)
         Me.LineShape3.Name = "LineShape3"
-        Me.LineShape3.X1 = -14
-        Me.LineShape3.X2 = 905
-        Me.LineShape3.Y1 = 406
-        Me.LineShape3.Y2 = 406
+        Me.LineShape3.Size = New System.Drawing.Size(920, 1)
         '
         'LineShape2
         '
+        Me.LineShape2.BackColor = System.Drawing.Color.Black
+        Me.LineShape2.Location = New System.Drawing.Point(0, 222)
         Me.LineShape2.Name = "LineShape2"
-        Me.LineShape2.X1 = -11
-        Me.LineShape2.X2 = 908
-        Me.LineShape2.Y1 = 222
-        Me.LineShape2.Y2 = 222
+        Me.LineShape2.Size = New System.Drawing.Size(920, 1)
         '
         'LineShape1
         '
+        Me.LineShape1.BackColor = System.Drawing.Color.Black
+        Me.LineShape1.Location = New System.Drawing.Point(0, 137)
         Me.LineShape1.Name = "LineShape1"
-        Me.LineShape1.X1 = -15
-        Me.LineShape1.X2 = 904
-        Me.LineShape1.Y1 = 137
-        Me.LineShape1.Y2 = 137
+        Me.LineShape1.Size = New System.Drawing.Size(920, 1)
         '
         'Button3
         '
@@ -285,7 +273,9 @@ Partial Class mainForm
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Label8)
-        Me.Controls.Add(Me.ShapeContainer1)
+        Me.Controls.Add(Me.LineShape3)
+        Me.Controls.Add(Me.LineShape2)
+        Me.Controls.Add(Me.LineShape1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
@@ -315,10 +305,9 @@ Partial Class mainForm
     Friend WithEvents Button1 As System.Windows.Forms.Button
     Friend WithEvents Button2 As System.Windows.Forms.Button
     Friend WithEvents Label9 As System.Windows.Forms.Label
-    Friend WithEvents ShapeContainer1 As Microsoft.VisualBasic.PowerPacks.ShapeContainer
-    Friend WithEvents LineShape3 As Microsoft.VisualBasic.PowerPacks.LineShape
-    Friend WithEvents LineShape2 As Microsoft.VisualBasic.PowerPacks.LineShape
-    Friend WithEvents LineShape1 As Microsoft.VisualBasic.PowerPacks.LineShape
+    Friend WithEvents LineShape3 As System.Windows.Forms.Panel
+    Friend WithEvents LineShape2 As System.Windows.Forms.Panel
+    Friend WithEvents LineShape1 As System.Windows.Forms.Panel
     Friend WithEvents Button3 As System.Windows.Forms.Button
     Friend WithEvents Label7 As System.Windows.Forms.Label
 

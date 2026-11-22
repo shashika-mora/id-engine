@@ -1,8 +1,7 @@
 ﻿Imports System.Net
 Public Class mainForm
     Dim wheretosave As String
-    Delegate Sub changetextsafe(ByVal length As Long, ByVal position As Integer, ByVal percent As Integer, ByVal speed As Double)
-    Delegate Sub downloadcompletesafe(ByVal cancelled As Boolean)
+    Delegate Sub changetextsafe(ByVal length As Long, ByVal position As Long, ByVal percent As Integer, ByVal speed As Double)
     Public Sub downloadcomplete(ByVal cancelled As Boolean)
         Me.txtFilename.Enabled = True
         Me.btnDownload.Enabled = True
@@ -16,10 +15,11 @@ Public Class mainForm
             Me.Timer1.Enabled = True
         End If
     End Sub
-    Public Sub changetexts(ByVal length As Long, ByVal position As Integer, ByVal percent As Integer, ByVal speed As Double)
-        Me.Label3.Text = "File Size : " & Math.Round(length / 1024) & "KB"
+    Public Sub changetexts(ByVal length As Long, ByVal position As Long, ByVal percent As Integer, ByVal speed As Double)
+        Me.Label3.Text = If(length >= 0, "File Size : " & Math.Round(length / 1024) & "KB", "File Size : Unknown")
         Me.Label5.Text = "Downloading... : " & Me.txtFilename.Text
-        Me.Label4.Text = "Downloaded : " & Math.Round((position / 1024), 2) & "KB of " & Math.Round((length / 1024), 2) & "KB (" & Me.ProgressBar1.Value & " %)"
+        Me.Label4.Text = "Downloaded : " & Math.Round(position / 1024, 2) & "KB"
+        If length > 0 Then Me.Label4.Text &= " of " & Math.Round(length / 1024, 2) & "KB (" & percent & "%)"
         If speed = -1 Then
             Me.Label2.Text = "Download Speed : Speed Calculating..."
         Else
@@ -28,21 +28,25 @@ Public Class mainForm
         Me.ProgressBar1.Value = percent
     End Sub
     Private Sub btnDownload_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDownload.Click
-        If Me.txtFilename.Text <> "" AndAlso (Me.txtFilename.Text.StartsWith("http://") Or Me.txtFilename.Text.StartsWith("HTTP://") Or (Me.txtFilename.Text.StartsWith("https://"))) Then
-            Me.SaveFileDialog1.FileName = Me.txtFilename.Text.Split("/"c)(Me.txtFilename.Text.Split("/"c).Length - 1)
-            If Me.SaveFileDialog1.ShowDialog = Windows.Forms.DialogResult.OK Then
-                Me.wheretosave = Me.SaveFileDialog1.FileName
-                Me.SaveFileDialog1.FileName = ""
-                Me.Label6.Text = "Save to : " & Me.wheretosave
-                Me.txtFilename.Enabled = False
-                Me.btnDownload.Enabled = False
-                Me.btnCancel.Enabled = True
-                Me.BackgroundWorker1.RunWorkerAsync()
-            End If
-        Else
-            MessageBox.Show("Please Input a valid URL for Download.", "Attention", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Dim address As Uri = Nothing
+        If Not Uri.TryCreate(Me.txtFilename.Text.Trim(), UriKind.Absolute, address) OrElse
+            (address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps) Then
+            MessageBox.Show("Please enter a valid HTTP or HTTPS URL.", "Attention", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
         End If
+
+        Me.SaveFileDialog1.FileName = IO.Path.GetFileName(address.AbsolutePath)
+        If Me.SaveFileDialog1.ShowDialog() <> DialogResult.OK Then Return
+
+        Me.wheretosave = Me.SaveFileDialog1.FileName
+        Me.SaveFileDialog1.FileName = ""
+        Me.Label6.Text = "Save to : " & Me.wheretosave
+        Me.txtFilename.Enabled = False
+        Me.btnDownload.Enabled = False
+        Me.btnCancel.Enabled = True
+        Me.ProgressBar1.Value = 0
         Dialog1.ListBox1.Items.Add(Label8.Text & "  File : " & Me.wheretosave & "   URL : " & txtFilename.Text)
+        Me.BackgroundWorker1.RunWorkerAsync(address)
     End Sub
     Private Sub btnCancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCancel.Click
         Me.cantrim.Enabled = True
@@ -65,54 +69,80 @@ Public Class mainForm
         Me.txtFilename.Focus()
     End Sub
     Private Sub BackgroundWorker1_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles BackgroundWorker1.DoWork
-        Dim theResponse As HttpWebResponse
-        Dim theRequest As HttpWebRequest
+        Dim destination As String = Me.wheretosave
+        Dim partialPath As String = IO.Path.Combine(IO.Path.GetDirectoryName(destination), Guid.NewGuid().ToString("N") & ".part")
+        Dim ownsPartial As Boolean = False
         Try
-            theRequest = WebRequest.Create(Me.txtFilename.Text)
-            theResponse = theRequest.GetResponse
-        Catch ex As Exception
-            MessageBox.Show("An Error occurred while downloading file : " & vbNewLine & ControlChars.CrLf & "1) File doesn't exist." & ControlChars.CrLf & "2) Remote server Error.", "Error Founded !", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Dim canceldelegate As New downloadcompletesafe(AddressOf downloadcomplete)
-            Me.Invoke(canceldelegate, True)
-            Exit Sub
+            Dim request As HttpWebRequest = DirectCast(WebRequest.Create(DirectCast(e.Argument, Uri)), HttpWebRequest)
+            request.Timeout = 30000
+            request.ReadWriteTimeout = 30000
+            Using response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse),
+                  input As IO.Stream = response.GetResponseStream(),
+                  output As New IO.FileStream(partialPath, IO.FileMode.CreateNew, IO.FileAccess.Write)
+                ownsPartial = True
+                Dim length As Long = response.ContentLength
+                Dim position As Long = 0
+                Dim buffer(4095) As Byte
+                Dim speedTimer As Stopwatch = Stopwatch.StartNew()
+                Dim update As New changetextsafe(AddressOf changetexts)
+                Dim lastUpdate As Long = -250
+                Do
+                    If Me.BackgroundWorker1.CancellationPending Then
+                        e.Cancel = True
+                        Return
+                    End If
+
+                    Dim count As Integer = input.Read(buffer, 0, buffer.Length)
+                    If count = 0 Then Exit Do
+                    output.Write(buffer, 0, count)
+                    position += count
+
+                    If speedTimer.ElapsedMilliseconds - lastUpdate >= 250 Then
+                        Dim percent As Integer = If(length > 0, CInt(Math.Min(100.0, position * 100.0 / length)), 0)
+                        Dim speed As Double = position / Math.Max(0.001, speedTimer.Elapsed.TotalSeconds)
+                        Me.Invoke(update, length, position, percent, speed)
+                        lastUpdate = speedTimer.ElapsedMilliseconds
+                    End If
+                Loop
+
+                If length >= 0 AndAlso position <> length Then
+                    Throw New IO.IOException("The download ended before the whole file arrived.")
+                End If
+            End Using
+
+            If Me.BackgroundWorker1.CancellationPending Then
+                e.Cancel = True
+                Return
+            End If
+            If IO.File.Exists(destination) Then
+                IO.File.Replace(partialPath, destination, Nothing)
+            Else
+                IO.File.Move(partialPath, destination)
+            End If
+            ownsPartial = False
+        Finally
+            If ownsPartial Then IO.File.Delete(partialPath)
         End Try
-        Dim length As Long = theResponse.ContentLength
-        Dim safedelegate As New changetextsafe(AddressOf changetexts)
-        Me.Invoke(safedelegate, length, 0, 0, 0)
-        Dim writestream As New IO.FileStream(Me.wheretosave, IO.FileMode.Create)
-        Dim nread As Integer
-        Dim speedtimer As New Stopwatch
-        Dim currentspeed As Double = -1
-        Dim readings As Integer = 0
-        Do
-            If BackgroundWorker1.CancellationPending Then
-                Exit Do
-            End If
-            speedtimer.Start()
-            Dim readbytes(4095) As Byte
-            Dim bytesread As Integer = theResponse.GetResponseStream.Read(readbytes, 0, 4096)
-            nread += bytesread
-            Dim percent As Short = (nread * 100) / length
-            Me.Invoke(safedelegate, length, nread, percent, currentspeed)
-            If bytesread = 0 Then Exit Do
-            writestream.Write(readbytes, 0, bytesread)
-            speedtimer.Stop()
-            readings += 1
-            If readings >= 5 Then
-                currentspeed = 20408 / (speedtimer.ElapsedMilliseconds / 1000)
-                speedtimer.Reset()
-                readings = 0
-            End If
-        Loop
-        writestream.Close()
-        If Me.BackgroundWorker1.CancellationPending Then
-            IO.File.Delete(Me.wheretosave)
-            Dim canceldelegate As New downloadcompletesafe(AddressOf downloadcomplete)
-            Me.Invoke(canceldelegate, True)
-            Exit Sub
+    End Sub
+
+    Private Sub BackgroundWorker1_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles BackgroundWorker1.RunWorkerCompleted
+        If e.Error IsNot Nothing Then
+            Me.txtFilename.Enabled = True
+            Me.btnDownload.Enabled = True
+            Me.btnCancel.Enabled = False
+            Me.Label4.Text = "Download failed."
+            MessageBox.Show(e.Error.Message, "Download failed", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Else
+            If Not e.Cancelled Then Me.ProgressBar1.Value = 100
+            downloadcomplete(e.Cancelled)
         End If
-        Dim completedelegates As New downloadcompletesafe(AddressOf downloadcomplete)
-        Me.Invoke(completedelegates, False)
+    End Sub
+
+    Private Sub mainForm_FormClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs) Handles Me.FormClosing
+        If Me.BackgroundWorker1.IsBusy AndAlso e.CloseReason = CloseReason.UserClosing Then
+            Me.BackgroundWorker1.CancelAsync()
+            e.Cancel = True
+        End If
     End Sub
 
     Private Sub logontrim_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles logontrim.Tick

@@ -4,4 +4,4 @@ Internet Download Manager was paid, so I tried making my own downloader with wha
 
 Open [ID Engine.sln](ID%20Engine.sln) in Visual Studio.
 
-Some of the original resource files are missing from this project.
+Enter a file URL and click Download to choose where to save it.

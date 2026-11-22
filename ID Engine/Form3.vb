@@ -1,26 +1,14 @@
 ﻿Public Class frmabt
 
     Private Sub Form3_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Me.Icon = My.Resources.about
+        Me.Icon = My.Resources.asd
         Me.ShowInTaskbar = False
         Me.BackgroundImage = My.Resources._150_x_150_logo_transparent
         Me.Button1.Focus()
 
         Me.Label4.Text = "Share this freeware with your families and friends." & vbNewLine & "They will be happy to use ID Engine. Thank you!"
 
-        On Error Resume Next
-        Const file As String = "about.std"
-        Dim tmp As String
-        tmp = ""
-        FileSystem.FileOpen(1, file, OpenMode.Input)
-        Do While Not FileSystem.EOF(1)
-            tmp = tmp & FileSystem.LineInput(1)
-            If Not FileSystem.EOF(1) Then
-                tmp = tmp & Chr(13) & Chr(10)
-            End If
-        Loop
-        FileSystem.FileClose(1)
-        Label1.Text = tmp
+        Label1.Text = My.Application.Info.Description
         Dim ApplicationTitle As String
         If My.Application.Info.Title <> "" Then
             ApplicationTitle = My.Application.Info.Title
